@@ -1,12 +1,4 @@
-# React + Vite
+#盲盒抽盒机#
+7/8 把几个主要的页面写好了，但是基本只是有静态的占位页，没有建立数据库，也没有页面之间的跳转
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+7/10 尝试驯服SQLite，一开始直接在命令行写入盲盒信息，但发现这样无法实现管理员权限能够增删盲盒的功能，于是试图驯服脚本，但是太生疏了经常把之前的数据库初始化。实现了登录和注册页，以及它们之间的跳转。
