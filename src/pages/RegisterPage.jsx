@@ -11,7 +11,7 @@ export default function RegisterPage() {
 
   const handleRegister = async () => {
     try {
-      const res = await axios.post('/api/register', { username, password });
+      const res = await axios.post('/api/auth/register', { username, password });
       localStorage.setItem('userId', res.data.userId);
       navigate('/my');
     } catch (err) {

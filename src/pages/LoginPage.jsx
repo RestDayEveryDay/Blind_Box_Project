@@ -11,19 +11,26 @@ export default function LoginPage() {
 
   const handleLogin = async () => {
     try {
-      const res = await axios.post('/api/login', { username, password });
+      const res = await axios.post('/api/auth/login', { username, password });
+
+      // 保存用户信息
       localStorage.setItem('userId', res.data.userId);
-      navigate('/my');
+      localStorage.setItem('role', res.data.role);
+
+      if (res.data.role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/my');
+      }
     } catch (err) {
       setMessage(err.response?.data?.error || '登录失败');
     }
   };
 
   return (
-    <div className="flex flex-col min-h-screen pb-16"> {/* 留出底部导航空间 */}
+    <div className="flex flex-col min-h-screen pb-16">
       <div className="flex flex-col items-center justify-center flex-1 gap-4 p-4">
         <h1 className="text-2xl font-bold">登录</h1>
-
         <input
           type="text"
           placeholder="用户名"
@@ -44,15 +51,12 @@ export default function LoginPage() {
         >
           登录
         </button>
-
         <p className="text-sm text-gray-600">
           还没有账号？<Link to="/register" className="text-blue-600 hover:underline">注册新账号</Link>
         </p>
-
         {message && <p className="text-red-500">{message}</p>}
       </div>
 
-      {/* 底部导航栏 */}
       <BottomTabBar />
     </div>
   );
