@@ -1,61 +1,37 @@
-import { useState } from 'react';
-import axios from 'axios';
+import React from 'react';
 
-const backendURL = import.meta.env.VITE_BACKEND_URL;
-
-const BoxPoolCard = ({ id, name, imageUrl }) => {
-  const [result, setResult] = useState(null);
-  const [show, setShow] = useState(false);
-  const [loading, setLoading] = useState(false);
-
-  const handleDraw = async () => {
-    setLoading(true);
-    try {
-      const res = await axios.post(`${backendURL}/api/boxes/draw`, {
-        userId: 1,
-        poolId: id
-      });
-
-      setResult(res.data.box);
-      setShow(true);
-    } catch (err) {
-      alert('抽盒失败，请稍后再试');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+export default function BoxPoolCard({ id, name, description, image_url, onClick }) {
   return (
-    <div className="bg-white rounded shadow p-4 mb-4">
-      <img src={imageUrl} alt={name} className="w-full h-32 object-cover rounded mb-2" />
-      <h3 className="text-lg font-semibold mb-2">{name}</h3>
-      <button
-        onClick={handleDraw}
-        disabled={loading}
-        className="w-full bg-purple-400 hover:bg-purple-500 text-white font-medium py-2 rounded transition"
-      >
-        {loading ? '正在抽取中...' : '抽这个系列'}
-      </button>
-
-      {/* 弹窗 */}
-      {show && result && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded shadow-lg w-80 relative">
-            <h4 className="text-xl font-bold mb-2 text-purple-800">🎉 抽中了！</h4>
-            <p className="text-gray-800">名称：{result.name}</p>
-            <p className="text-gray-600">描述：{result.description}</p>
-            <button
-              onClick={() => setShow(false)}
-              className="absolute top-2 right-2 text-gray-500 hover:text-black text-xl"
-            >
-              ×
-            </button>
-          </div>
+    <div 
+      className="bg-white rounded-xl shadow-lg p-4 mb-4 cursor-pointer transform transition-all duration-200 hover:scale-105 hover:shadow-xl"
+      onClick={onClick}
+    >
+      <div className="aspect-square mb-3 overflow-hidden rounded-lg">
+        <img 
+          src={image_url} 
+          alt={name}
+          className="w-full h-full object-cover"
+          onError={(e) => {
+            e.target.src = 'https://via.placeholder.com/200x200?text=盲盒';
+          }}
+        />
+      </div>
+      
+      <h3 className="font-bold text-gray-800 text-sm mb-1 line-clamp-1">
+        {name}
+      </h3>
+      
+      <p className="text-gray-600 text-xs line-clamp-2 leading-relaxed">
+        {description || '神秘盲盒等你来抽~'}
+      </p>
+      
+      <div className="mt-3 flex items-center justify-between">
+        <span className="text-purple-600 text-xs font-medium">点击查看详情</span>
+        <div className="text-right">
+          <div className="text-xs text-gray-500">立即抽取</div>
+          <div className="text-purple-600 font-bold text-sm">🎁</div>
         </div>
-      )}
+      </div>
     </div>
   );
-};
-
-export default BoxPoolCard;
+}
