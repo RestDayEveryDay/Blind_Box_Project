@@ -9,7 +9,9 @@ import AdminHome from './pages/AdminHome';
 import AdminBoxPage from './pages/AdminBoxPage';
 import AdminOrderPage from './pages/AdminOrderPage';
 import MomentsPage from './pages/MomentsPage';
-import BoxDetailPage from './pages/BoxDetailPage'; // 新增
+import BoxDetailPage from './pages/BoxDetailPage'; 
+import PostPage from './pages/PostPage';
+import LuckRankPage from './pages/Luckrankpage';
 
 // 保护路由组件
 const ProtectedRoute = ({ children }) => {
@@ -51,6 +53,8 @@ function App() {
         {/* 盲盒详情页面 - 公开访问 */}
         <Route path="/box-detail/:poolId" element={<BoxDetailPage />} />
         
+        <Route path="/luck-rank" element={<LuckRankPage />} />
+        
         {/* 需要登录的路由 */}
         <Route 
           path="/my" 
@@ -68,6 +72,7 @@ function App() {
             </ProtectedRoute>
           } 
         />
+        
         
         {/* 管理员路由 */}
         <Route 

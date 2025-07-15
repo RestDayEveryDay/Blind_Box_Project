@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 const tabs = [
   { name: '首页', path: '/', icon: '🏠' },
   { name: '朋友圈', path: '/moments', icon: '👥' },
-  { name: '发表', path: '/post', icon: '✍️' },
+  { name: '欧非榜', path: '/luck-rank', icon: '🏆' }, // 修改这行
   { name: '我的', path: '/my', icon: '👤' },
 ];
 
