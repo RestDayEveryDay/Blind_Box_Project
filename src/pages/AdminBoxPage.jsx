@@ -5,6 +5,8 @@ import BottomTabBar from '../components/BottomTabBar';
 export default function AdminBoxPage() {
   const [boxes, setBoxes] = useState([]);
   const [pools, setPools] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [newBox, setNewBox] = useState({
     name: '',
     description: '',
@@ -15,18 +17,37 @@ export default function AdminBoxPage() {
   const [editData, setEditData] = useState({});
 
   const fetchBoxes = async () => {
-    const res = await axios.get('/api/admin/boxes');
-    setBoxes(res.data.boxes);
+    try {
+      setError(null);
+      const res = await axios.get('/api/admin/boxes');
+      setBoxes(res.data.boxes || []);
+    } catch (error) {
+      console.error('获取盲盒列表失败:', error);
+      const errorMsg = error.response?.data?.error || error.message;
+      setError(`无法加载盲盒列表: ${errorMsg}`);
+      setBoxes([]);
+    }
   };
 
   const fetchPools = async () => {
-    const res = await axios.get('/api/admin/pools');
-    setPools(res.data.pools);
+    try {
+      const res = await axios.get('/api/admin/pools');
+      setPools(res.data.pools || []);
+    } catch (error) {
+      console.error('获取盲盒池列表失败:', error);
+      const errorMsg = error.response?.data?.error || error.message;
+      setError(`无法加载盲盒池列表: ${errorMsg}`);
+      setPools([]);
+    }
   };
 
   useEffect(() => {
-    fetchBoxes();
-    fetchPools();
+    const loadData = async () => {
+      setLoading(true);
+      await Promise.all([fetchBoxes(), fetchPools()]);
+      setLoading(false);
+    };
+    loadData();
   }, []);
 
   const handleAdd = async () => {
@@ -50,8 +71,17 @@ export default function AdminBoxPage() {
   };
 
   const handleDelete = async (id) => {
-    await axios.delete(`/api/admin/boxes/${id}`);
-    fetchBoxes();
+    if (!confirm('确定要删除这个盲盒吗？')) {
+      return;
+    }
+    
+    try {
+      await axios.delete(`/api/admin/boxes/${id}`);
+      fetchBoxes();
+    } catch (error) {
+      console.error('删除盲盒失败:', error);
+      alert('删除失败: ' + (error.response?.data?.error || error.message));
+    }
   };
 
   const startEditing = (box) => {
@@ -83,8 +113,35 @@ export default function AdminBoxPage() {
     <div className="p-6 pb-20 space-y-4">
       <h1 className="text-2xl font-bold">📦 盲盒管理</h1>
 
+      {/* 错误提示 */}
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+          <p className="font-bold">⚠️ 数据加载失败</p>
+          <p>{error}</p>
+          <button 
+            onClick={() => {
+              setError(null);
+              fetchBoxes();
+              fetchPools();
+            }}
+            className="mt-2 bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+          >
+            重试
+          </button>
+        </div>
+      )}
+
+      {/* 加载中 */}
+      {loading && (
+        <div className="text-center py-8">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          <p className="mt-2 text-gray-600">加载中...</p>
+        </div>
+      )}
+
       {/* 添加区域 */}
-      <div className="space-y-2 border-b pb-4">
+      {!loading && !error && (
+        <div className="space-y-2 border-b pb-4">
         <input
           type="text"
           placeholder="盲盒名称"
@@ -125,10 +182,12 @@ export default function AdminBoxPage() {
         >
           添加盲盒
         </button>
-      </div>
+        </div>
+      )}
 
       {/* 展示区域 */}
-      <ul className="space-y-3">
+      {!loading && !error && (
+        <ul className="space-y-3">
         {boxes.map((box) => (
           <li key={box.id} className="border p-3 rounded space-y-1">
             {editingId === box.id ? (
@@ -205,7 +264,8 @@ export default function AdminBoxPage() {
             )}
           </li>
         ))}
-      </ul>
+        </ul>
+      )}
 
       {/* ✅ 添加通用底部导航 */}
       <BottomTabBar />

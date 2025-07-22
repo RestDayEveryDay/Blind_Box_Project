@@ -19,7 +19,6 @@ const highlightText = (text, searchTerm) => {
 };
 
 export default function BoxPoolCard({ 
-  id, 
   name, 
   description, 
   image_url, 

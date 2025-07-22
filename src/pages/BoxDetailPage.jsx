@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import BottomTabBar from '../components/BottomTabBar';
@@ -14,12 +14,9 @@ export default function BoxDetailPage() {
   const [drawing, setDrawing] = useState(false);
   const [result, setResult] = useState(null);
   const [showAnimation, setShowAnimation] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
-  useEffect(() => {
-    fetchPoolPreview();
-  }, [poolId]);
-
-  const fetchPoolPreview = async () => {
+  const fetchPoolPreview = useCallback(async () => {
     try {
       setLoading(true);
       console.log('📖 获取盲盒池预览:', poolId);
@@ -40,7 +37,17 @@ export default function BoxDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [poolId, navigate]);
+
+  useEffect(() => {
+    fetchPoolPreview();
+    
+    // 检测是否为管理员
+    const userId = localStorage.getItem('userId');
+    if (userId === '1') {
+      setIsAdmin(true);
+    }
+  }, [fetchPoolPreview]);
 
   const handleDraw = async () => {
     const userId = localStorage.getItem('userId');
@@ -48,6 +55,12 @@ export default function BoxDetailPage() {
     if (!userId) {
       alert('请先登录');
       navigate('/login');
+      return;
+    }
+
+    // 管理员不能抽盒
+    if (isAdmin || userId === '1') {
+      alert('管理员账号不能参与抽盒，请使用普通用户账号');
       return;
     }
 
@@ -90,7 +103,7 @@ export default function BoxDetailPage() {
         }
       }, 2000); // 2秒抽取动画
 
-    } catch (err) {
+    } catch {
       setDrawing(false);
       setShowAnimation(false);
     }
@@ -183,17 +196,17 @@ export default function BoxDetailPage() {
         <div className="bg-white rounded-lg shadow-md p-6 text-center">
           <button
             onClick={handleDraw}
-            disabled={drawing}
+            disabled={drawing || isAdmin}
             className={`w-full py-4 px-6 rounded-xl font-bold text-lg transition-all transform ${
-              drawing 
+              drawing || isAdmin
                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 hover:scale-105 shadow-lg'
             }`}
           >
-            {drawing ? '🎲 抽取中...' : '🎁 开启盲盒'}
+            {isAdmin ? '🛠 管理员账号' : drawing ? '🎲 抽取中...' : '🎁 开启盲盒'}
           </button>
           <p className="text-sm text-gray-500 mt-2">
-            点击抽取，获得随机物品！
+            {isAdmin ? '管理员账号不能参与抽盒' : '点击抽取，获得随机物品！'}
           </p>
         </div>
 
@@ -226,7 +239,7 @@ export default function BoxDetailPage() {
         <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md p-4 text-white">
           <h3 className="text-lg font-bold mb-4">🎭 神秘隐藏款</h3>
           <div className="grid grid-cols-1 gap-3">
-            {preview.hiddenItems.map((item, index) => (
+            {preview.hiddenItems.map((item) => (
               <div key={item.id} className="bg-black bg-opacity-30 rounded-lg p-4 text-center">
                 <div className="w-16 h-16 mx-auto bg-gradient-to-br from-yellow-400 to-orange-500 rounded-lg flex items-center justify-center mb-3">
                   <span className="text-2xl">❓</span>

@@ -10,10 +10,14 @@ export default function LuckRankPage() {
   const [unluckRanking, setUnluckRanking] = useState([]);
   const [myRanking, setMyRanking] = useState(null);
   const [loading, setLoading] = useState(false);
+
+
   const [activeTab, setActiveTab] = useState('luck'); // luck, unluck, stats
   const [rankingStats, setRankingStats] = useState(null);
 
   useEffect(() => {
+
+    
     fetchRankings();
     fetchMyRanking();
     fetchRankingStats();
@@ -57,16 +61,18 @@ export default function LuckRankPage() {
     }
   };
 
-  const getLuckLevel = (score) => {
-    if (score >= 80) return { level: '欧皇', color: 'text-yellow-600 bg-yellow-100', icon: '👑' };
-    if (score >= 60) return { level: '欧洲人', color: 'text-blue-600 bg-blue-100', icon: '😊' };
-    if (score >= 40) return { level: '平民', color: 'text-gray-600 bg-gray-100', icon: '😐' };
-    if (score >= 20) return { level: '非洲人', color: 'text-orange-600 bg-orange-100', icon: '😭' };
+  const getLuckLevel = (hiddenRatio) => {
+    // 基于隐藏款比例计算等级
+    const ratio = hiddenRatio * 100; // 转换为百分比
+    if (ratio >= 10) return { level: '欧皇', color: 'text-yellow-600 bg-yellow-100', icon: '👑' };
+    if (ratio >= 5) return { level: '欧洲人', color: 'text-blue-600 bg-blue-100', icon: '😊' };
+    if (ratio >= 2) return { level: '平民', color: 'text-gray-600 bg-gray-100', icon: '😐' };
+    if (ratio >= 0.5) return { level: '非洲人', color: 'text-orange-600 bg-orange-100', icon: '😭' };
     return { level: '非酋', color: 'text-red-600 bg-red-100', icon: '💀' };
   };
 
-  const formatScore = (score) => {
-    return Math.round(score * 10) / 10;
+  const formatRatio = (ratio) => {
+    return (ratio * 100).toFixed(1); // 转换为百分比保留1位小数
   };
 
   const getRankIcon = (rank) => {
@@ -96,13 +102,13 @@ export default function LuckRankPage() {
               <div>
                 <h3 className="font-bold">我的运气</h3>
                 <div className="flex items-center space-x-2 mt-1">
-                  <span className="text-2xl">{getLuckLevel(myRanking.luckScore).icon}</span>
-                  <span className="font-medium">{getLuckLevel(myRanking.luckScore).level}</span>
+                  <span className="text-2xl">{getLuckLevel(myRanking.hiddenRatio || 0).icon}</span>
+                  <span className="font-medium">{getLuckLevel(myRanking.hiddenRatio || 0).level}</span>
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold">{formatScore(myRanking.luckScore)}</div>
-                <div className="text-sm opacity-90">运气值</div>
+                <div className="text-2xl font-bold">{formatRatio(myRanking.hiddenRatio || 0)}%</div>
+                <div className="text-sm opacity-90">隐藏款比例</div>
               </div>
             </div>
             <div className="mt-3 grid grid-cols-3 gap-4 text-center">
@@ -166,7 +172,7 @@ export default function LuckRankPage() {
                     👑 欧皇榜 - 运气爆棚的幸运儿
                   </h3>
                   <p className="text-sm text-gray-600 mt-1">
-                    根据传说/史诗物品获得率排名
+                    根据隐藏款抽取比例排名
                   </p>
                 </div>
                 <div className="divide-y divide-gray-100">
@@ -178,7 +184,7 @@ export default function LuckRankPage() {
                     </div>
                   ) : (
                     luckRanking.map((user, index) => {
-                      const luck = getLuckLevel(user.luckScore);
+                      const luck = getLuckLevel(user.hiddenRatio || 0);
                       const isMe = user.user_id === currentUserId;
                       
                       return (
@@ -199,12 +205,12 @@ export default function LuckRankPage() {
                                 {luck.icon} {luck.level}
                               </span>
                               <span className="text-xs text-gray-500">
-                                {user.legendaryCount}传说 {user.epicCount}史诗
+                                {user.hiddenCount || 0}隐藏款 / {user.totalOrders}次
                               </span>
                             </div>
                           </div>
                           <div className="text-right">
-                            <div className="font-bold text-yellow-600">{formatScore(user.luckScore)}</div>
+                            <div className="font-bold text-yellow-600">{formatRatio(user.hiddenRatio || 0)}%</div>
                             <div className="text-xs text-gray-500">{user.totalOrders}次抽取</div>
                           </div>
                         </div>
@@ -223,7 +229,7 @@ export default function LuckRankPage() {
                     💀 非酋榜 - 运气不太好的勇士
                   </h3>
                   <p className="text-sm text-gray-600 mt-1">
-                    根据抽取次数多但稀有物品少排名
+                    没抽到隐藏款的用户，抽取次数越多排名越高
                   </p>
                 </div>
                 <div className="divide-y divide-gray-100">
@@ -235,7 +241,7 @@ export default function LuckRankPage() {
                     </div>
                   ) : (
                     unluckRanking.map((user, index) => {
-                      const luck = getLuckLevel(user.luckScore);
+                      const luck = getLuckLevel(user.hiddenRatio || 0);
                       const isMe = user.user_id === currentUserId;
                       
                       return (
@@ -256,12 +262,12 @@ export default function LuckRankPage() {
                                 {luck.icon} {luck.level}
                               </span>
                               <span className="text-xs text-gray-500">
-                                {user.commonCount}普通 占{Math.round(user.commonCount / user.totalOrders * 100)}%
+                                {user.hiddenCount || 0}隐藏款 / {user.totalOrders}次
                               </span>
                             </div>
                           </div>
                           <div className="text-right">
-                            <div className="font-bold text-red-600">{formatScore(user.luckScore)}</div>
+                            <div className="font-bold text-red-600">{formatRatio(user.hiddenRatio || 0)}%</div>
                             <div className="text-xs text-gray-500">{user.totalOrders}次抽取</div>
                           </div>
                         </div>
@@ -288,50 +294,58 @@ export default function LuckRankPage() {
                       <div className="text-sm text-gray-600">总抽取次数</div>
                     </div>
                     <div className="text-center p-3 bg-yellow-50 rounded-lg">
-                      <div className="text-2xl font-bold text-yellow-600">{rankingStats.legendaryCount}</div>
-                      <div className="text-sm text-gray-600">传说物品</div>
+                      <div className="text-2xl font-bold text-yellow-600">{rankingStats.hiddenCount || 0}</div>
+                      <div className="text-sm text-gray-600">隐藏款</div>
                     </div>
                     <div className="text-center p-3 bg-purple-50 rounded-lg">
-                      <div className="text-2xl font-bold text-purple-600">{rankingStats.epicCount}</div>
-                      <div className="text-sm text-gray-600">史诗物品</div>
+                      <div className="text-2xl font-bold text-purple-600">{rankingStats.commonCount || 0}</div>
+                      <div className="text-sm text-gray-600">普通款</div>
                     </div>
                   </div>
                 </div>
 
-                {/* 稀有度分布 */}
+                {/* 物品分布 */}
                 <div className="bg-white rounded-lg shadow p-4">
-                  <h3 className="font-bold text-gray-800 mb-3">🎯 稀有度分布</h3>
+                  <h3 className="font-bold text-gray-800 mb-3">🎯 物品分布</h3>
                   <div className="space-y-3">
-                    {rankingStats.rarityDistribution?.map(item => (
-                      <div key={item.rarity} className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <span className={`px-2 py-1 rounded text-xs ${
-                            item.rarity === 'legendary' ? 'bg-yellow-100 text-yellow-600' :
-                            item.rarity === 'epic' ? 'bg-purple-100 text-purple-600' :
-                            item.rarity === 'rare' ? 'bg-blue-100 text-blue-600' :
-                            'bg-gray-100 text-gray-600'
-                          }`}>
-                            {item.rarity === 'legendary' ? '👑 传说' :
-                             item.rarity === 'epic' ? '💜 史诗' :
-                             item.rarity === 'rare' ? '💙 稀有' : '⚪ 普通'}
-                          </span>
-                          <span className="text-sm">{item.count} 个</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <div className="w-20 bg-gray-200 rounded-full h-2">
-                            <div 
-                              className={`h-2 rounded-full ${
-                                item.rarity === 'legendary' ? 'bg-yellow-500' :
-                                item.rarity === 'epic' ? 'bg-purple-500' :
-                                item.rarity === 'rare' ? 'bg-blue-500' : 'bg-gray-500'
-                              }`}
-                              style={{ width: `${item.percentage}%` }}
-                            ></div>
-                          </div>
-                          <span className="text-sm text-gray-600">{item.percentage}%</span>
-                        </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <span className="px-2 py-1 rounded text-xs bg-yellow-100 text-yellow-600">
+                          ✨ 隐藏款
+                        </span>
+                        <span className="text-sm">{rankingStats.hiddenCount || 0} 个</span>
                       </div>
-                    ))}
+                      <div className="flex items-center space-x-2">
+                        <div className="w-20 bg-gray-200 rounded-full h-2">
+                          <div 
+                            className="h-2 rounded-full bg-yellow-500"
+                            style={{ width: `${((rankingStats.hiddenCount || 0) / (rankingStats.totalOrders || 1) * 100)}%` }}
+                          ></div>
+                        </div>
+                        <span className="text-sm text-gray-600">
+                          {((rankingStats.hiddenCount || 0) / (rankingStats.totalOrders || 1) * 100).toFixed(1)}%
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <span className="px-2 py-1 rounded text-xs bg-gray-100 text-gray-600">
+                          ⚪ 普通款
+                        </span>
+                        <span className="text-sm">{rankingStats.commonCount || 0} 个</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-20 bg-gray-200 rounded-full h-2">
+                          <div 
+                            className="h-2 rounded-full bg-gray-500"
+                            style={{ width: `${((rankingStats.commonCount || 0) / (rankingStats.totalOrders || 1) * 100)}%` }}
+                          ></div>
+                        </div>
+                        <span className="text-sm text-gray-600">
+                          {((rankingStats.commonCount || 0) / (rankingStats.totalOrders || 1) * 100).toFixed(1)}%
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
 

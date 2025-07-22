@@ -14,7 +14,7 @@ export default function MyPage() {
   const [orderStats, setOrderStats] = useState(null);
   const [recentOrders, setRecentOrders] = useState([]);
   const [luckyItems, setLuckyItems] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
   const [username, setUsername] = useState('');
   const [activeTab, setActiveTab] = useState('overview');
   const [errors, setErrors] = useState({});
