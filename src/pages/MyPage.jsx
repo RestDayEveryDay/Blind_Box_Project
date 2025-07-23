@@ -63,7 +63,7 @@ export default function MyPage() {
       setErrors(prev => ({ ...prev, stats: '获取统计失败' }));
       // 设置默认值
       setOrderStats({
-        basic: { totalOrders: 0, totalSpent: 0, uniqueBoxes: 0 },
+        basic: { totalOrders: 0, uniqueBoxes: 0 },
         rarity: [],
         recent: []
       });
@@ -227,12 +227,6 @@ export default function MyPage() {
                           {orderStats.basic.totalOrders}
                         </div>
                         <div className="text-xs text-gray-600">总抽取次数</div>
-                      </div>
-                      <div className="bg-green-50 p-3 rounded-lg text-center">
-                        <div className="text-2xl font-bold text-green-600">
-                          ¥{orderStats.basic.totalSpent}
-                        </div>
-                        <div className="text-xs text-gray-600">总消费</div>
                       </div>
                       <div className="bg-purple-50 p-3 rounded-lg text-center">
                         <div className="text-2xl font-bold text-purple-600">

@@ -156,12 +156,14 @@ export default function MomentsPage() {
   }, []);
 
   const currentUserId = parseInt(localStorage.getItem('userId'));
+  const userRole = localStorage.getItem('userRole');
+  const isAdmin = userRole === 'admin' || currentUserId === 1;
 
   return (
     <div className="flex flex-col min-h-screen pb-20 bg-gray-50">
       <div className="p-4 space-y-4">
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold">📸 朋友圈</h1>
+          <h1 className="text-xl font-bold">{isAdmin ? '📢 管理公告' : '📸 朋友圈'}</h1>
           <button 
             onClick={fetchMoments}
             className="text-blue-500 text-sm"
@@ -173,21 +175,31 @@ export default function MomentsPage() {
 
         {/* 发布区域 */}
         <div className="bg-white p-4 rounded-lg shadow">
+          {isAdmin && (
+            <div className="mb-3 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div className="flex items-center space-x-2">
+                <span className="text-yellow-600">📢</span>
+                <span className="text-sm text-yellow-800 font-medium">管理员发布公告</span>
+              </div>
+              <p className="text-xs text-yellow-700 mt-1">您发布的内容将作为系统公告显示给所有用户</p>
+            </div>
+          )}
+          
           <textarea
-            placeholder="说点什么吧..."
+            placeholder={isAdmin ? "发布系统公告..." : "说点什么吧..."}
             className="w-full border border-gray-300 p-3 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            rows={3}
+            rows={isAdmin ? 4 : 3}
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            maxLength={500}
+            maxLength={isAdmin ? 1000 : 500}
           />
           <div className="text-right text-xs text-gray-500 mt-1">
-            {content.length}/500
+            {content.length}/{isAdmin ? 1000 : 500}
           </div>
           
           <input
             type="url"
-            placeholder="图片地址（可选）"
+            placeholder={isAdmin ? "公告图片地址（可选）" : "图片地址（可选）"}
             className="w-full border border-gray-300 p-3 rounded-lg mt-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             value={imageUrl}
             onChange={(e) => setImageUrl(e.target.value)}
@@ -197,12 +209,14 @@ export default function MomentsPage() {
             className={`w-full mt-3 px-4 py-2 rounded-lg font-medium ${
               posting || !content.trim()
                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                : 'bg-blue-500 text-white hover:bg-blue-600'
+                : isAdmin 
+                  ? 'bg-orange-500 text-white hover:bg-orange-600'
+                  : 'bg-blue-500 text-white hover:bg-blue-600'
             }`}
             onClick={handlePost}
             disabled={posting || !content.trim()}
           >
-            {posting ? '发布中...' : '发布'}
+            {posting ? (isAdmin ? '发布公告中...' : '发布中...') : (isAdmin ? '📢 发布公告' : '发布')}
           </button>
         </div>
 
@@ -214,48 +228,68 @@ export default function MomentsPage() {
           </div>
         ) : moments.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
-            <p>还没有动态，快来发布第一条吧！</p>
+            <p>{isAdmin ? '还没有公告，快来发布第一条吧！' : '还没有动态，快来发布第一条吧！'}</p>
           </div>
         ) : (
           <ul className="space-y-4">
-            {moments.map((moment) => (
-              <li key={moment.id} className="bg-white p-4 rounded-lg shadow">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="font-semibold text-blue-600">{moment.username}</p>
-                  {moment.user_id === currentUserId && (
-                    <button
-                      onClick={() => handleDelete(moment.id)}
-                      className="text-red-500 text-sm hover:text-red-700"
-                    >
-                      删除
-                    </button>
-                  )}
-                </div>
-                
-                <p className="mt-2 whitespace-pre-line text-gray-800 leading-relaxed">
-                  {moment.content}
-                </p>
-                
-                {moment.imageUrl && (
-                  <div className="mt-3">
-                    <img
-                      src={moment.imageUrl}
-                      alt="动态图片"
-                      className="rounded-lg max-h-60 w-auto object-cover cursor-pointer hover:opacity-90 transition-opacity"
-                      onError={(e) => {
-                        e.target.style.display = 'none';
-                        console.error('图片加载失败:', moment.imageUrl);
-                      }}
-                      onClick={() => window.open(moment.imageUrl, '_blank')}
-                    />
+            {moments.map((moment) => {
+              const isAdminPost = moment.role === 'admin' || moment.user_id === 1;
+              
+              return (
+                <li key={moment.id} className={`p-4 rounded-lg shadow ${
+                  isAdminPost ? 'bg-gradient-to-r from-orange-50 to-yellow-50 border-l-4 border-orange-400' : 'bg-white'
+                }`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center space-x-2">
+                      {isAdminPost && <span className="text-orange-600">📢</span>}
+                      <p className={`font-semibold ${
+                        isAdminPost ? 'text-orange-600' : 'text-blue-600'
+                      }`}>
+                        {isAdminPost ? '系统公告' : moment.username}
+                      </p>
+                      {isAdminPost && (
+                        <span className="px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded-full">
+                          官方
+                        </span>
+                      )}
+                    </div>
+                    {moment.user_id === currentUserId && (
+                      <button
+                        onClick={() => handleDelete(moment.id)}
+                        className="text-red-500 text-sm hover:text-red-700"
+                      >
+                        删除
+                      </button>
+                    )}
                   </div>
-                )}
-                
-                <p className="text-gray-500 text-sm mt-3 border-t pt-2">
-                  {formatDate(moment.created_at)}
-                </p>
-              </li>
-            ))}
+                  
+                  <p className={`mt-2 whitespace-pre-line leading-relaxed ${
+                    isAdminPost ? 'text-gray-900 font-medium' : 'text-gray-800'
+                  }`}>
+                    {moment.content}
+                  </p>
+                  
+                  {moment.imageUrl && (
+                    <div className="mt-3">
+                      <img
+                        src={moment.imageUrl}
+                        alt={isAdminPost ? "公告图片" : "动态图片"}
+                        className="rounded-lg max-h-60 w-auto object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          console.error('图片加载失败:', moment.imageUrl);
+                        }}
+                        onClick={() => window.open(moment.imageUrl, '_blank')}
+                      />
+                    </div>
+                  )}
+                  
+                  <p className="text-gray-500 text-sm mt-3 border-t pt-2">
+                    {formatDate(moment.created_at)}
+                  </p>
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>

@@ -1,12 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { getAllPools } from '../api/index';
 import SearchBar from '../components/SearchBar';
 import BottomTabBar from '../components/BottomTabBar';
 import BoxPoolCard from '../components/BoxPoolCard';
-
-// 配置 axios 基础URL
-axios.defaults.baseURL = 'http://localhost:3001';
 
 function HomePage() {
   const navigate = useNavigate();
@@ -41,7 +38,7 @@ function HomePage() {
   const fetchPools = async () => {
     try {
       setLoading(true);
-      const res = await axios.get('/api/pools');
+      const res = await getAllPools();
       setPools(res.data.pools || []);
     } catch (err) {
       console.error('获取盲盒池失败:', err);

@@ -95,7 +95,7 @@ export default function LuckRankPage() {
       </div>
 
       {/* 我的排名卡片 */}
-      {myRanking && (
+      {myRanking && !myRanking.isAdmin && (
         <div className="p-4">
           <div className="bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg p-4 text-white">
             <div className="flex items-center justify-between">
@@ -125,6 +125,17 @@ export default function LuckRankPage() {
                 <div className="text-xs opacity-90">总抽取</div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+      
+      {/* 管理员提示 */}
+      {myRanking && myRanking.isAdmin && (
+        <div className="p-4">
+          <div className="bg-gradient-to-r from-gray-500 to-gray-600 rounded-lg p-4 text-white text-center">
+            <div className="text-2xl mb-2">🛠</div>
+            <h3 className="font-bold">管理员账号</h3>
+            <p className="text-sm opacity-90 mt-1">管理员不参与排行榜统计</p>
           </div>
         </div>
       )}

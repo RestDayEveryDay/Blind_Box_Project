@@ -29,7 +29,8 @@ export default function AdminOrderPage() {
     const result = orders.filter(
       (order) =>
         order.username?.toLowerCase().includes(lowerSearch) ||
-        order.box_name?.toLowerCase().includes(lowerSearch)
+        order.pool_name?.toLowerCase().includes(lowerSearch) ||
+        order.item_name?.toLowerCase().includes(lowerSearch)
     );
     setFilteredOrders(result);
     setPage(1); // 重置到第一页
@@ -48,7 +49,7 @@ export default function AdminOrderPage() {
 
         <input
           type="text"
-          placeholder="搜索用户名或盲盒名"
+          placeholder="搜索用户名、盲盒池或物品名"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="border px-3 py-2 rounded w-full"
@@ -61,7 +62,7 @@ export default function AdminOrderPage() {
                 🧍 用户 <strong>{order.username}</strong>
               </p>
               <p>
-                📦 抽中盲盒 <strong>{order.box_name}</strong>
+                📦 从 <strong>{order.pool_name}</strong> 抽中 <strong>{order.item_name}</strong>
               </p>
               <p className="text-sm text-gray-600">🕒 时间 {order.timestamp}</p>
             </li>
