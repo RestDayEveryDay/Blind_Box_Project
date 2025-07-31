@@ -3,9 +3,10 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import BottomTabBar from '../components/BottomTabBar';
+import { getPlaceholderImage } from '../utils/imageUtils';
 
-// 配置 axios 基础URL
-axios.defaults.baseURL = 'http://localhost:3001';
+// 移除硬编码的baseURL，使用Vite代理
+// axios.defaults.baseURL = 'http://localhost:3001';
 
 export default function PostPage() {
   const navigate = useNavigate();
@@ -97,12 +98,12 @@ export default function PostPage() {
   ];
 
   const quickImages = [
-    'https://via.placeholder.com/300x200/FF6B6B/FFFFFF?text=美食',
-    'https://via.placeholder.com/300x200/4ECDC4/FFFFFF?text=风景', 
-    'https://via.placeholder.com/300x200/45B7D1/FFFFFF?text=天空',
-    'https://via.placeholder.com/300x200/96CEB4/FFFFFF?text=自然',
-    'https://via.placeholder.com/300x200/FFEAA7/000000?text=阳光',
-    'https://via.placeholder.com/300x200/DDA0DD/FFFFFF?text=花朵'
+    getPlaceholderImage.moment('美食'),
+    getPlaceholderImage.moment('风景'),
+    getPlaceholderImage.moment('天空'),
+    getPlaceholderImage.moment('自然'),
+    getPlaceholderImage.moment('阳光'),
+    getPlaceholderImage.moment('花朵')
   ];
 
   return (

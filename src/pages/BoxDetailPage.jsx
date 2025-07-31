@@ -2,9 +2,10 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import BottomTabBar from '../components/BottomTabBar';
+import { getImageUrlWithFallback, getPlaceholderImage } from '../utils/imageUtils';
 
-// 配置 axios 基础URL
-axios.defaults.baseURL = 'http://localhost:3001';
+// 移除硬编码的baseURL，使用Vite代理
+// axios.defaults.baseURL = 'http://localhost:3001';
 
 export default function BoxDetailPage() {
   const { poolId } = useParams();
@@ -64,9 +65,6 @@ export default function BoxDetailPage() {
       return;
     }
 
-    if (!confirm(`确定要抽取 ${poolData.pool.name} 吗？\n\n⚠️ 这是真正的盲盒抽取，结果完全随机！`)) {
-      return;
-    }
 
     try {
       setDrawing(true);
@@ -106,6 +104,51 @@ export default function BoxDetailPage() {
     } catch {
       setDrawing(false);
       setShowAnimation(false);
+    }
+  };
+
+  const handleShare = async () => {
+    const userId = localStorage.getItem('userId');
+    
+    if (!userId) {
+      alert('请先登录');
+      return;
+    }
+
+    if (!result || !result.item) {
+      alert('分享失败：没有可分享的内容');
+      return;
+    }
+
+    try {
+      // 生成分享文案
+      const shareContent = `快看，我在【${pool.name}】抽到了【${result.item.name}】！你也来试试吧 🎁`;
+      
+      // 使用物品图片作为分享图片
+      const shareImageUrl = result.item.image_url || '';
+
+      console.log('📤 准备分享到朋友圈:', {
+        content: shareContent,
+        imageUrl: shareImageUrl
+      });
+
+      // 调用朋友圈发布API
+      const response = await axios.post('/api/moments', {
+        user_id: parseInt(userId),
+        content: shareContent,
+        imageUrl: shareImageUrl
+      });
+
+      console.log('✅ 分享成功:', response.data);
+      alert('分享成功！已发布到朋友圈 🎉');
+      
+      // 关闭结果弹窗
+      setResult(null);
+
+    } catch (err) {
+      console.error('❗ 分享失败:', err);
+      const errorMessage = err.response?.data?.error || '分享失败，请稍后重试';
+      alert(`分享失败：${errorMessage}`);
     }
   };
 
@@ -163,8 +206,7 @@ export default function BoxDetailPage() {
             ← 返回
           </button>
           <div className="flex-1">
-            <h1 className="text-lg font-bold">{pool.name}</h1>
-            <p className="text-sm text-gray-600">{pool.description}</p>
+            <h1 className="text-lg font-bold">盲盒详情</h1>
           </div>
         </div>
       </div>
@@ -174,11 +216,11 @@ export default function BoxDetailPage() {
         <div className="bg-white rounded-lg shadow-md p-4">
           <div className="flex items-center space-x-4">
             <img 
-              src={pool.image_url} 
+              src={getImageUrlWithFallback(pool)} 
               alt={pool.name}
               className="w-20 h-20 rounded-lg object-cover"
               onError={(e) => {
-                e.target.src = 'https://via.placeholder.com/80x80?text=盲盒';
+                e.target.src = getPlaceholderImage.item80();
               }}
             />
             <div className="flex-1">
@@ -217,11 +259,11 @@ export default function BoxDetailPage() {
             {preview.normalItems.map((item) => (
               <div key={item.id} className="bg-gray-50 rounded-lg p-3 text-center">
                 <img
-                  src={item.image_url}
+                  src={getImageUrlWithFallback(item)}
                   alt={item.name}
                   className="w-full h-16 object-cover rounded mb-2"
                   onError={(e) => {
-                    e.target.src = 'https://via.placeholder.com/64x64?text=物品';
+                    e.target.src = getPlaceholderImage.item64();
                   }}
                 />
                 <h4 className="text-xs font-medium text-gray-800 line-clamp-1">
@@ -311,11 +353,11 @@ export default function BoxDetailPage() {
               
               {result.item?.image_url && (
                 <img 
-                  src={result.item.image_url} 
+                  src={getImageUrlWithFallback(result.item)} 
                   alt={result.item.name}
                   className="w-24 h-24 mx-auto rounded-lg object-cover mb-4 shadow-lg"
                   onError={(e) => {
-                    e.target.src = 'https://via.placeholder.com/96x96?text=物品';
+                    e.target.src = getPlaceholderImage.item96();
                   }}
                 />
               )}
@@ -338,8 +380,18 @@ export default function BoxDetailPage() {
                 🎊 已自动保存到你的收藏
               </p>
               
-              <div className="mt-4 text-xs text-gray-500">
-                5秒后自动关闭
+              {/* 分享按钮 */}
+              <div className="mt-4 space-y-2">
+                <button
+                  onClick={handleShare}
+                  className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-2 px-4 rounded-lg font-medium hover:from-blue-600 hover:to-purple-600 transition-all duration-200 transform hover:scale-105"
+                >
+                  📤 立即分享
+                </button>
+                
+                <div className="text-xs text-gray-500">
+                  5秒后自动关闭
+                </div>
               </div>
             </div>
           </div>

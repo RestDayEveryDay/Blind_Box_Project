@@ -1,4 +1,5 @@
 import React from 'react';
+import { getImageUrlWithFallback, getPlaceholderImage } from '../utils/imageUtils';
 
 // 高亮搜索词的辅助函数
 const highlightText = (text, searchTerm) => {
@@ -21,10 +22,12 @@ const highlightText = (text, searchTerm) => {
 export default function BoxPoolCard({ 
   name, 
   description, 
-  image_url, 
+  image_url,
+  imageUrl, 
   onClick, 
   searchTerm = "",
-  className = ""
+  className = "",
+  ...props
 }) {
   return (
     <div 
@@ -34,11 +37,11 @@ export default function BoxPoolCard({
       {/* 图片区域 */}
       <div className="aspect-square mb-3 overflow-hidden rounded-lg relative">
         <img 
-          src={image_url} 
+          src={getImageUrlWithFallback({ image_url, imageUrl })} 
           alt={name}
           className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
           onError={(e) => {
-            e.target.src = 'https://via.placeholder.com/200x200/E5E7EB/9CA3AF?text=盲盒';
+            e.target.src = getPlaceholderImage.box();
           }}
         />
         

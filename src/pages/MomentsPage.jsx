@@ -2,9 +2,11 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import BottomTabBar from '../components/BottomTabBar';
+import Comments from '../components/Comments';
+import { getImageUrlWithFallback } from '../utils/imageUtils';
 
-// 配置 axios 基础URL
-axios.defaults.baseURL = 'http://localhost:3001';
+// 移除硬编码的baseURL，使用Vite代理
+// axios.defaults.baseURL = 'http://localhost:3001';
 
 export default function MomentsPage() {
   const [moments, setMoments] = useState([]);
@@ -12,13 +14,15 @@ export default function MomentsPage() {
   const [imageUrl, setImageUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [posting, setPosting] = useState(false);
+  const [visibleComments, setVisibleComments] = useState({}); // 控制评论区域显示/隐藏
 
   const fetchMoments = async () => {
     try {
       setLoading(true);
       console.log('📖 正在获取动态列表...');
       
-      const res = await axios.get('/api/moments');
+      // 使用带评论数量的API
+      const res = await axios.get('/api/moments/with-comments');
       console.log('✅ 获取动态成功:', res.data);
       
       setMoments(res.data.moments || []);
@@ -26,13 +30,19 @@ export default function MomentsPage() {
       console.error('❗ 获取动态失败:', err);
       console.error('错误详情:', err.response?.data);
       
-      // 用户友好的错误提示
-      if (err.response?.status === 404) {
-        alert('API 端点不存在，请检查服务器是否正常运行');
-      } else if (err.code === 'ERR_NETWORK') {
-        alert('网络连接失败，请检查服务器是否启动');
-      } else {
-        alert('获取动态失败，请稍后重试');
+      // 如果新API失败，回退到原API
+      try {
+        const res = await axios.get('/api/moments');
+        setMoments(res.data.moments || []);
+      } catch (fallbackErr) {
+        // 用户友好的错误提示
+        if (err.response?.status === 404) {
+          alert('API 端点不存在，请检查服务器是否正常运行');
+        } else if (err.code === 'ERR_NETWORK') {
+          alert('网络连接失败，请检查服务器是否启动');
+        } else {
+          alert('获取动态失败，请稍后重试');
+        }
       }
     } finally {
       setLoading(false);
@@ -149,6 +159,14 @@ export default function MomentsPage() {
     if (days < 7) return `${days}天前`;
     
     return date.toLocaleDateString('zh-CN');
+  };
+
+  // 切换评论区域显示/隐藏
+  const toggleComments = (momentId) => {
+    setVisibleComments(prev => ({
+      ...prev,
+      [momentId]: !prev[momentId]
+    }));
   };
 
   useEffect(() => {
@@ -272,21 +290,45 @@ export default function MomentsPage() {
                   {moment.imageUrl && (
                     <div className="mt-3">
                       <img
-                        src={moment.imageUrl}
+                        src={getImageUrlWithFallback(moment.imageUrl)}
                         alt={isAdminPost ? "公告图片" : "动态图片"}
                         className="rounded-lg max-h-60 w-auto object-cover cursor-pointer hover:opacity-90 transition-opacity"
                         onError={(e) => {
                           e.target.style.display = 'none';
                           console.error('图片加载失败:', moment.imageUrl);
                         }}
-                        onClick={() => window.open(moment.imageUrl, '_blank')}
+                        onClick={() => window.open(getImageUrlWithFallback(moment.imageUrl), '_blank')}
                       />
                     </div>
                   )}
                   
-                  <p className="text-gray-500 text-sm mt-3 border-t pt-2">
-                    {formatDate(moment.created_at)}
-                  </p>
+                  {/* 底部操作栏 */}
+                  <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-100">
+                    <span className="text-gray-500 text-sm">
+                      {formatDate(moment.created_at)}
+                    </span>
+                    
+                    {/* 评论按钮 */}
+                    <button
+                      onClick={() => toggleComments(moment.id)}
+                      className="flex items-center space-x-1 text-gray-500 hover:text-blue-500 transition-colors text-sm"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                      </svg>
+                      <span>
+                        {visibleComments[moment.id] ? '隐藏评论' : '评论'}
+                        {moment.comment_count > 0 && ` (${moment.comment_count})`}
+                      </span>
+                    </button>
+                  </div>
+
+                  {/* 评论组件 */}
+                  <Comments
+                    momentId={moment.id}
+                    isVisible={visibleComments[moment.id]}
+                    onToggle={() => toggleComments(moment.id)}
+                  />
                 </li>
               );
             })}

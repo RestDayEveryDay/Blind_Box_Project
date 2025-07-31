@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>占位符测试</title>
+</head>
+<body>
+    <h1>本地占位符生成测试</h1>
+    <div id="test-container"></div>
+    
+    <script>
+        // 测试占位符生成函数
+        function generatePlaceholder(width = 200, height = 200, text = '盲盒', bgColor = '#E5E7EB', textColor = '#9CA3AF') {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = width;
+            canvas.height = height;
+            
+            // 绘制背景
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(0, 0, width, height);
+            
+            // 绘制文字
+            ctx.fillStyle = textColor;
+            ctx.font = `${Math.min(width, height) / 8}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(text, width / 2, height / 2);
+            
+            return canvas.toDataURL('image/png');
+        }
+        
+        // 创建测试图片
+        const container = document.getElementById('test-container');
+        
+        const testImages = [
+            { size: [200, 200], text: '盲盒', bg: '#E5E7EB', color: '#9CA3AF' },
+            { size: [64, 64], text: '物品', bg: '#F3F4F6', color: '#6B7280' },
+            { size: [128, 128], text: '加载失败', bg: '#FEE2E2', color: '#DC2626' },
+            { size: [300, 200], text: '美食', bg: '#F0F9FF', color: '#0369A1' }
+        ];
+        
+        testImages.forEach(({ size, text, bg, color }) => {
+            const img = document.createElement('img');
+            img.src = generatePlaceholder(size[0], size[1], text, bg, color);
+            img.style.margin = '10px';
+            img.style.border = '1px solid #ccc';
+            container.appendChild(img);
+        });
+    </script>
+</body>
+</html>

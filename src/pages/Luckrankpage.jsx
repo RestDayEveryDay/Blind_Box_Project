@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import BottomTabBar from '../components/BottomTabBar';
 
-// 配置 axios 基础URL
-axios.defaults.baseURL = 'http://localhost:3001';
+// 移除硬编码的baseURL，使用Vite代理
+// axios.defaults.baseURL = 'http://localhost:3001';
 
 export default function LuckRankPage() {
   const [luckRanking, setLuckRanking] = useState([]);

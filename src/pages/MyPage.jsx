@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import BottomTabBar from '../components/BottomTabBar';
+import { getImageUrlWithFallback } from '../utils/imageUtils';
 
-// 配置 axios 基础URL
-axios.defaults.baseURL = 'http://localhost:3001';
+// 移除硬编码的baseURL，使用Vite代理
+// axios.defaults.baseURL = 'http://localhost:3001';
 
 export default function MyPage() {
   const navigate = useNavigate();
@@ -282,7 +283,7 @@ export default function MyPage() {
                             <div key={item.id} className="flex items-center space-x-3 p-2 bg-yellow-50 rounded-lg">
                               {item.item_image && (
                                 <img 
-                                  src={item.item_image} 
+                                  src={getImageUrlWithFallback(item.item_image)} 
                                   alt={item.item_name}
                                   className="w-12 h-12 rounded object-cover"
                                   onError={(e) => e.target.style.display = 'none'}
@@ -320,7 +321,7 @@ export default function MyPage() {
                             <div key={order.id} className="flex items-center space-x-3 p-3 border rounded-lg">
                               {order.item_image && (
                                 <img 
-                                  src={order.item_image} 
+                                  src={getImageUrlWithFallback(order.item_image)} 
                                   alt={order.item_name}
                                   className="w-10 h-10 rounded object-cover"
                                   onError={(e) => e.target.style.display = 'none'}
@@ -392,11 +393,11 @@ export default function MyPage() {
                         {moment.imageUrl && (
                           <div className="mt-2">
                             <img
-                              src={moment.imageUrl}
+                              src={getImageUrlWithFallback(moment.imageUrl)}
                               alt="动态图片"
                               className="rounded-lg max-h-32 w-auto object-cover cursor-pointer hover:opacity-90 transition-opacity"
                               onError={(e) => e.target.style.display = 'none'}
-                              onClick={() => window.open(moment.imageUrl, '_blank')}
+                              onClick={() => window.open(getImageUrlWithFallback(moment.imageUrl), '_blank')}
                             />
                           </div>
                         )}

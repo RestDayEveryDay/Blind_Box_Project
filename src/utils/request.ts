@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const request = axios.create({
-  baseURL: 'http://localhost:3001', // 移除 /api 前缀，在具体请求中添加
+  // 移除硬编码的baseURL，使用Vite代理
   timeout: 5000,
 });
 

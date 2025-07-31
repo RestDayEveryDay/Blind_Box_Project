@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import BottomTabBar from '../components/BottomTabBar';
+import ImageUpload from '../components/ImageUpload';
+import { getImageUrlWithFallback, getPlaceholderImage } from '../utils/imageUtils';
 
 export default function AdminBoxPage() {
   const [pools, setPools] = useState([]);
@@ -24,7 +26,8 @@ export default function AdminBoxPage() {
     name: '',
     description: '',
     drop_rate: '',
-    rarity: 'normal'
+    rarity: 'normal',
+    imageUrl: ''
   });
   const [editingItemId, setEditingItemId] = useState(null);
   const [editItemData, setEditItemData] = useState({});
@@ -142,9 +145,10 @@ export default function AdminBoxPage() {
         name: newItem.name,
         description: newItem.description,
         drop_rate: parseFloat(newItem.drop_rate),
-        rarity: newItem.rarity
+        rarity: newItem.rarity,
+        image_url: newItem.imageUrl
       });
-      setNewItem({ name: '', description: '', drop_rate: '', rarity: 'normal' });
+      setNewItem({ name: '', description: '', drop_rate: '', rarity: 'normal', imageUrl: '' });
       fetchItems(selectedPool.id);
     } catch (err) {
       alert(err.response?.data?.error || '添加物品失败');
@@ -194,12 +198,11 @@ export default function AdminBoxPage() {
           value={newPool.description}
           onChange={(e) => setNewPool({ ...newPool, description: e.target.value })}
         />
-        <input
-          type="url"
-          placeholder="系列封面图片URL（可选）"
-          className="border px-3 py-2 rounded w-full"
-          value={newPool.imageUrl}
-          onChange={(e) => setNewPool({ ...newPool, imageUrl: e.target.value })}
+        <ImageUpload
+          type="pools"
+          label="系列封面图片"
+          currentImage={newPool.imageUrl}
+          onSuccess={(url) => setNewPool({ ...newPool, imageUrl: url })}
         />
         <button
           onClick={handleAddPool}
@@ -338,6 +341,12 @@ export default function AdminBoxPage() {
           value={newItem.drop_rate}
           onChange={(e) => setNewItem({ ...newItem, drop_rate: e.target.value })}
         />
+        <ImageUpload
+          type="items"
+          label="物品图片"
+          currentImage={newItem.imageUrl}
+          onSuccess={(url) => setNewItem({ ...newItem, imageUrl: url })}
+        />
         <button
           onClick={handleAddItem}
           className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
@@ -357,23 +366,36 @@ export default function AdminBoxPage() {
           {items.map((item) => (
             <div key={item.id} className="border rounded-lg p-3 bg-white">
               <div className="flex items-center justify-between">
-                <div>
-                  <div className="flex items-center space-x-2">
-                    <h4 className="font-bold">{item.name}</h4>
-                    <span className={`px-2 py-1 text-xs rounded-full ${
-                      item.rarity === 'hidden' 
-                        ? 'bg-purple-100 text-purple-800' 
-                        : 'bg-blue-100 text-blue-800'
-                    }`}>
-                      {item.rarity === 'hidden' ? '隐藏款' : '普通款'}
-                    </span>
-                  </div>
-                  {item.description && (
-                    <p className="text-gray-600 text-sm mt-1">{item.description}</p>
+                <div className="flex items-center space-x-3">
+                  {/* 物品图片 */}
+                  {item.image_url && (
+                    <img
+                      src={getImageUrlWithFallback(item.image_url)}
+                      alt={item.name}
+                      className="w-16 h-16 object-cover rounded-lg border-2 border-gray-200"
+                      onError={(e) => {
+                        e.target.src = getPlaceholderImage.item64();
+                      }}
+                    />
                   )}
-                  <p className="text-xs text-gray-500 mt-1">
-                    掉落率: {(item.drop_rate * 100).toFixed(1)}%
-                  </p>
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <h4 className="font-bold">{item.name}</h4>
+                      <span className={`px-2 py-1 text-xs rounded-full ${
+                        item.rarity === 'hidden' 
+                          ? 'bg-purple-100 text-purple-800' 
+                          : 'bg-blue-100 text-blue-800'
+                      }`}>
+                        {item.rarity === 'hidden' ? '隐藏款' : '普通款'}
+                      </span>
+                    </div>
+                    {item.description && (
+                      <p className="text-gray-600 text-sm mt-1">{item.description}</p>
+                    )}
+                    <p className="text-xs text-gray-500 mt-1">
+                      掉落率: {(item.drop_rate * 100).toFixed(1)}%
+                    </p>
+                  </div>
                 </div>
                 <div className="flex space-x-2">
                   <button
